@@ -27,7 +27,8 @@ ENV PYTHONUNBUFFERED=1 \
     UV_PROJECT_ENVIRONMENT=/app/.venv
 
 # Sistem paketleri: OCR için Tesseract + Türkçe dil dosyası; saat dilimi verisi.
-RUN apt-get update \
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
     && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-tur tzdata \
     && rm -rf /var/lib/apt/lists/*
 
