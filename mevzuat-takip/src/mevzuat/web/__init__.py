@@ -1475,6 +1475,8 @@ def uygulama_olustur(
     # konu ve alıcı grubu panelin aynı fonksiyonlarıyla ama sabit cevap biçimiyle (web/portal.py).
     portal_yolu = portal.portal_api(Oturum, giris_gerekli, [Depends(csrf_dogrula), Depends(imza_kontrol),
                                                              *anahtar_semalari])
+    from mevzuat.web import portal_entegrasyon
+    portal_entegrasyon.ekle(portal_yolu, Oturum, giris_gerekli, rapor_detay)
     surumlu = portal.yazma_adreslerini_ekle(portal_yolu, api.routes, panel_belgesi.BELGE, API_GRUPLARI)
     # Her uç noktanın başlığı, açıklaması, yetkisi ve hata cevapları (web/panel_belgesi.py). dış adreslere açılan panel
     # adresleri dokümanda tekrar görünmez, panel onları kullanmaya devam eder.
