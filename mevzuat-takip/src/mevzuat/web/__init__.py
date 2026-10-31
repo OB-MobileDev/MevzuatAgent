@@ -1476,7 +1476,27 @@ def uygulama_olustur(
     portal_yolu = portal.portal_api(Oturum, giris_gerekli, [Depends(csrf_dogrula), Depends(imza_kontrol),
                                                              *anahtar_semalari])
     from mevzuat.web import portal_entegrasyon
-    portal_entegrasyon.ekle(portal_yolu, Oturum, giris_gerekli, rapor_detay)
+    portal_entegrasyon.ekle(portal_yolu, Oturum, giris_gerekli, rapor_detay, {
+        "liste": lambda r, ad, v: kaynak_listesi(r),
+        "tipler": lambda r, ad, v: kaynak_tipleri(r),
+        "ekle": lambda r, ad, v: kaynak_ekle(r, KaynakIstegi.model_validate(v)),
+        "duzenle": lambda r, ad, v: kaynak_degistir(r, ad, KaynakIstegi.model_validate(v)),
+        "dene": lambda r, ad, v: kaynak_dene(r, KaynakIstegi.model_validate(v)),
+        "bul": lambda r, ad, v: kaynak_bul(r, AdresIstegi.model_validate(v)),
+        "kaldir": lambda r, ad, v: kaynak_kaldir(r, ad, SurumIstegi.model_validate(v)),
+        "geri_getir": lambda r, ad, v: kaynak_geri_getir(r, ad, SurumIstegi.model_validate(v)),
+    }, {
+        "liste": lambda r, kid, v: konu_listesi(r),
+        "onizleme": lambda r, kid, v: konu_onizleme(r, KonuIstegi.model_validate(v)),
+        "ekle": lambda r, kid, v: konu_ekle(r, KonuIstegi.model_validate(v)),
+        "duzenle": lambda r, kid, v: konu_degistir(r, kid, KonuIstegi.model_validate(v)),
+        "aktif": lambda r, kid, v: konu_aktif(r, kid, SurumIstegi.model_validate(v)),
+        "pasif": lambda r, kid, v: konu_pasif(r, kid, SurumIstegi.model_validate(v)),
+    }, {
+        "durum": lambda r, v: tarama_durumu(r),
+        "baslat": lambda r, v: tarama_iste(r),
+        "saatler": lambda r, v: zamanlama_degistir(r, ZamanlamaIstegi.model_validate(v)),
+    }, gizli_anahtar=gizli_anahtar, rapor_isletim=(ayar, make_client))
     surumlu = portal.yazma_adreslerini_ekle(portal_yolu, api.routes, panel_belgesi.BELGE, API_GRUPLARI)
     # Her uç noktanın başlığı, açıklaması, yetkisi ve hata cevapları (web/panel_belgesi.py). dış adreslere açılan panel
     # adresleri dokümanda tekrar görünmez, panel onları kullanmaya devam eder.

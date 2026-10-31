@@ -610,6 +610,7 @@ def karar_ver(
     notu: str | None,
     grup_idler: set[int] | None = None,
     ek_adresler: list[str] = (),
+    *, dagitim_gruplari: list | None = None, commit: bool = True,
 ) -> None:
     """Onay ya da ret. Onayda alıcılar onaylayıcının işaretlediği gruplardır (`grup_idler`). None verilirse iş koluna
     uyan bütün aktif gruplar alınır. Bunlara kişiye özel `ek_adresler` eklenir, onlar seçili bütün kalemleri alır."""
@@ -625,7 +626,12 @@ def karar_ver(
     if onay:
         if not dahil:
             raise ValueError("En az bir kalem seçilmeli. Hiçbiri gönderilmeyecekse raporu reddedin.")
-        gruplar, ek = _alicilari_dogrula(session, dahil, grup_idler, ek_adresler)
+        if dagitim_gruplari is None:
+            gruplar, ek = _alicilari_dogrula(session, dahil, grup_idler, ek_adresler)
+        else:
+            gruplar, ek = dagitim_gruplari, []
+            if not alicilar.dagitim_plani(gruplar, dahil):
+                raise ValueError("Seçilen kalemlere uygun, mail adresi olan portal personeli bulunamadı.")
 
     # Koşullu güncelleme, iki kişi aynı anda karar verirse sadece biri başarılı olur,
     # rapor iki kez dağıtılmaz.
@@ -649,8 +655,9 @@ def karar_ver(
             kayit.haric = kayit.id not in dahil_idler
         rapor.konu = rapor_konusu(dahil, rapor.olusturuldu.date())
         _plani_kaydet(session, rapor, dahil, gruplar, ek, notu)  # onayla aynı commit'te, onaylı ama plansız rapor kalmaz
-    session.commit()
-    session.refresh(rapor)
+    if commit:
+        session.commit()
+        session.refresh(rapor)
 
 
 # Onaylanmış rapordan başka kalemleri başka kişilere gönderir, ilk onayda seçilmeyen kalemler de seçilebilir.
